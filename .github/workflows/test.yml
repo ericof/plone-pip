@@ -1,0 +1,54 @@
+name: Test Plone Installation with PIP
+
+on: [push]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONUNBUFFERED: 1
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.7"
+          - "3.8"
+        plone-version:
+          - "5.2.2"
+          - "5.2.3"
+          - "5.2.4"
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: "Set environmental variables"
+        run: |
+          echo "REQUIREMENTS=plone-${{ matrix.plone-version }}.txt" >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/wheelhouse
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles(env.REQUIREMENTS) }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .
+          ./bin/python -m pip install -U pip setuptools wheel
+
+      - name: Create wheelhouse
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./bin/pip wheel -r ${{  env.REQUIREMENTS }} -w ~/.cache/wheelhouse
+
+      - name: Install Plone
+        run: ./bin/pip install --no-deps --no-build-isolation --no-index -r ${{  env.REQUIREMENTS }} -f ~/.cache/wheelhouse
