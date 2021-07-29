@@ -48,7 +48,7 @@ jobs:
 
       - name: Create wheelhouse
         if: steps.cache.outputs.cache-hit != 'true'
-        run: ./bin/pip wheel -r ${{  env.REQUIREMENTS }} -w ~/.cache/wheelhouse
+        run: ./bin/pip wheel -r ${{ env.REQUIREMENTS }} -w ~/.cache/wheelhouse
 
       - name: Install Plone
-        run: ./bin/pip install --no-deps --no-build-isolation --no-index -r ${{  env.REQUIREMENTS }} -f ~/.cache/wheelhouse
+        run: ./bin/pip install --no-deps --no-build-isolation --no-index -r ${{ env.REQUIREMENTS }} -f ~/.cache/wheelhouse
